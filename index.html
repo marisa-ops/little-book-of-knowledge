@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Little Book of Knowledge</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Allison&family=Lora:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+/* Layout: one closed book, centred on a dark desk. Click to open the cover; pages turn within the book. Single deliberate look (leather + gold), so no dark/light split. */
+:root {
+  --desk: #150e09;
+  --desk-2: #21160e;
+  --leather: #3a2518;
+  --leather-deep: #26160d;
+  --gold: #CDAC79;
+  --gold-light: #ecd9ae;
+  --gold-dark: #8a6d3b;
+  --paper: #e9e4dd;
+  --paper-edge: #d9d4ce;
+  --ink: #2b1d14;
+  --ink-soft: #5b4a3d;
+  --green: #2D401B;
+  --pink: #CFB0A6;
+  --foil: linear-gradient(115deg, #8f7344 0%, #ecd9ae 26%, #CDAC79 46%, #f4e5bf 62%, #a88a58 82%, #cdac79 100%);
+  --display: "Cormorant Garamond", "Cormorant", Georgia, "Times New Roman", serif;
+  --body: "Lora", Georgia, "Times New Roman", serif;
+  --script: "Allison", "Snell Roundhand", "Brush Script MT", cursive;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 35%, var(--desk-2) 0%, var(--desk) 70%);
+  color: var(--ink);
+  font-family: var(--body);
+  padding-block: 20px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  place-items: center;
+  overflow-x: clip;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* ---------- Book frame ---------- */
+.book {
+  --h: min(720px, calc(100svh - 40px));
+  position: relative;
+  height: var(--h);
+  width: min(calc(100vw - 32px), calc(var(--h) * 0.7));
+  min-height: 460px;
+  perspective: 2200px;
+  filter: drop-shadow(0 28px 38px rgba(0,0,0,.6));
+}
+
+/* ---------- Pages (inside) ---------- */
+.pages {
+  position: absolute; inset: 0;
+  border-radius: 3px 8px 8px 3px;
+  background:
+    linear-gradient(90deg, rgba(60,40,20,.28) 0, rgba(60,40,20,0) 7%),
+    linear-gradient(180deg, #ece7e0, var(--paper));
+  box-shadow: 1px 0 0 var(--paper-edge), 2px 0 0 #c7c1b8, 3px 0 0 var(--paper-edge), 4px 0 0 #bdb6ab, 5px 0 0 #d2ccc3;
+  overflow: hidden;
+  visibility: hidden;
+}
+.pages::before {
+  content: ""; position: absolute; inset: 14px 14px 14px 22px;
+  border: 1px solid rgba(205,172,121,.7); pointer-events: none; border-radius: 2px;
+}
+.is-open .pages { visibility: visible; }
+.page {
+  position: absolute; inset: 0;
+  opacity: 0; visibility: hidden; transform: translateX(16px);
+  transition: opacity .5s ease, transform .5s ease, visibility 0s .5s;
+}
+.page.active { opacity: 1; visibility: visible; transform: none; transition: opacity .55s ease .1s, transform .55s ease .1s, visibility 0s; }
+.page-inner {
+  height: 100%; overflow-y: auto; overscroll-behavior: contain;
+  padding: 46px 36px 84px 44px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.eyebrow {
+  font-family: var(--display); font-weight: 600; font-size: .82rem; letter-spacing: .32em; text-transform: uppercase;
+  color: var(--green); margin: 0;
+}
+.page h2, .leaf h2 {
+  font-family: var(--display); font-weight: 500; font-size: clamp(2.1rem, 8vw, 2.9rem); line-height: 1.05;
+  margin: 12px 0 0; color: var(--ink); text-wrap: balance;
+}
+.rule { display: flex; align-items: center; gap: 10px; margin: 20px 0 22px; color: var(--gold-dark); }
+.rule::before, .rule::after { content: ""; width: 44px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dark)); }
+.rule::after { transform: scaleX(-1); }
+.rule svg { width: 10px; height: 10px; fill: var(--gold-dark); }
+.lede { font-size: .95rem; line-height: 1.75; color: var(--ink-soft); margin: 0; max-width: 31ch; text-wrap: pretty; }
+.lede.placeholder { font-style: italic; }
+.prose { width: 100%; max-width: 360px; text-align: left; }
+.prose p { margin: 0 0 .95em; font-size: .88rem; line-height: 1.75; color: var(--ink-soft); text-wrap: pretty; hyphens: auto; }
+.prose p:last-child { margin-bottom: 0; }
+.prose.drop p:first-child::first-letter { float: left; font-family: var(--display); font-weight: 500; font-size: 3.4rem; line-height: .82; padding: 5px 9px 0 0; color: var(--gold-dark); }
+.prose.placeholder p { font-style: italic; text-align: center; }
+.lede.intro-text { font-size: .92rem; line-height: 1.8; max-width: 34ch; }
+.signoff { margin-top: 26px; display: flex; flex-direction: column; align-items: center; gap: 0; }
+.signoff .love { font-family: var(--display); font-style: italic; font-size: 1.05rem; color: var(--ink-soft); }
+.signoff .name { font-family: var(--script); font-size: 3.4rem; line-height: 1; color: var(--ink); transform: rotate(-3deg); margin-top: 2px; }
+.numeral { font-family: var(--display); font-style: italic; font-weight: 400; font-size: 1rem; color: var(--gold-dark); letter-spacing: .08em; }
+
+/* Article list */
+.articles { list-style: none; margin: 26px 0 0; padding: 0; width: 100%; max-width: 320px; text-align: left; }
+.articles li { border-top: 1px solid rgba(207,176,166,.75); }
+.articles li:last-child { border-bottom: 1px solid rgba(207,176,166,.75); }
+.articles a {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 4px; text-decoration: none; transition: padding .25s ease, color .25s ease;
+}
+.articles .t { font-family: var(--display); font-size: 1.28rem; font-weight: 500; line-height: 1.2; min-width: 0; overflow-wrap: anywhere; }
+.articles .txt { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.articles .d { font-size: .78rem; line-height: 1.55; color: var(--ink-soft); }
+.articles .go { font-family: var(--display); font-weight: 600; font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; color: var(--green); white-space: nowrap; }
+.articles a:hover { padding-left: 10px; color: var(--green); }
+
+/* Contents list on intro */
+.contents { list-style: none; margin: 14px 0 0; padding: 0; width: 100%; max-width: 310px; }
+.contents li:first-child button { border-top: 1px dotted rgba(138,109,59,.55); }
+.contents button {
+  width: 100%; display: flex; align-items: baseline; gap: 12px; text-align: left;
+  padding: 22px 2px; border-bottom: 1px dotted rgba(138,109,59,.55);
+  font-family: var(--display); font-size: 1.45rem; font-weight: 500; line-height: 1.15;
+  transition: padding .25s ease, color .25s ease;
+}
+.contents button:hover { color: var(--green); padding-left: 10px; }
+.contents .n { flex: none; width: 2.5em; font-style: italic; color: var(--gold-dark); font-weight: 400; font-size: 1.15rem; }
+.contents .t { min-width: 0; }
+
+/* Copyright page */
+.copy { margin: auto 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.copy p { margin: 0; font-size: .8rem; line-height: 1.7; color: var(--ink-soft); max-width: 30ch; }
+.copy .disclaimer { font-style: italic; font-size: .76rem; margin-top: 6px; padding-top: 16px; border-top: 1px solid rgba(207,176,166,.75); }
+.copy .mark { font-family: var(--display); font-size: 1.45rem; font-weight: 500; color: var(--ink); }
+.copy a { text-decoration: none; border-bottom: 1px solid var(--gold); }
+.copy a:hover { color: var(--green); }
+.closebook {
+  margin-top: 10px; font-family: var(--display); font-weight: 600; font-size: .78rem; letter-spacing: .26em; text-transform: uppercase;
+  color: var(--green); padding: 10px 4px; border-bottom: 1px solid var(--gold);
+}
+
+/* Page navigation */
+.nav {
+  position: absolute; left: 30px; right: 22px; bottom: 24px; z-index: 3;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav::before { content: ""; position: absolute; z-index: -1; pointer-events: none; inset: -30px -6px -8px -6px; background: linear-gradient(to top, var(--paper) 60%, rgba(233,228,221,0)); }
+.arrow {
+  width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%;
+  color: var(--ink); transition: background .2s, opacity .2s;
+}
+.arrow:hover:not(:disabled) { background: rgba(205,172,121,.28); }
+.arrow:disabled { opacity: .25; cursor: default; }
+.arrow svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.4; }
+.dots { display: flex; gap: 4px; }
+.dots button { width: 22px; height: 22px; display: grid; place-items: center; }
+.dots button::before { content: ""; width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--gold-dark); transition: background .25s, transform .25s; }
+.dots button[aria-current="true"]::before { background: var(--gold-dark); transform: scale(1.25); }
+
+/* ---------- Page turn ---------- */
+.pages { perspective: 2200px; -webkit-tap-highlight-color: transparent; }
+.page-inner { touch-action: pan-y pinch-zoom; }
+.turning .page, .turning .page.active { transition: none !important; }
+.nav::before { transition: opacity .3s ease; }
+.turning .nav::before { opacity: 0; }
+.leaf {
+  position: absolute; inset: 0; z-index: 2;
+  transform-origin: left center;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  pointer-events: none; user-select: none; -webkit-user-select: none;
+  overflow: hidden; border-radius: 3px 8px 8px 3px;
+  background:
+    linear-gradient(90deg, rgba(60,40,20,.28) 0, rgba(60,40,20,0) 7%),
+    linear-gradient(180deg, #ece7e0, var(--paper));
+  will-change: transform;
+}
+.leaf::before {
+  content: ""; position: absolute; inset: 14px 14px 14px 22px;
+  border: 1px solid rgba(205,172,121,.7); pointer-events: none; border-radius: 2px;
+}
+.leaf .page-inner { overflow: hidden; position: relative; }
+.leaf .curl { /* light catching the lifted edge, then its shade */
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 60%, rgba(255,252,245,.34) 83%, rgba(70,48,24,.32) 100%);
+}
+.turn-shadow { /* shadow the lifting leaf casts on the page beneath */
+  position: absolute; top: 0; bottom: 0; left: 0; width: 42%; z-index: 1;
+  pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, rgba(34,21,9,.5) 0%, rgba(34,21,9,.18) 45%, rgba(34,21,9,0) 100%);
+}
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- Cover ---------- */
+.cover {
+  position: absolute; inset: 0; z-index: 5;
+  transform-origin: left center;
+  border-radius: 4px 10px 10px 4px;
+  background:
+    radial-gradient(ellipse at 38% 28%, rgba(255,240,232,.28) 0%, rgba(255,240,232,0) 58%),
+    linear-gradient(160deg, #d8bbb0 0%, #CFB0A6 55%, #b58f82 100%);
+  box-shadow: inset 0 0 0 1px rgba(60,35,25,.25), inset 0 0 40px rgba(90,55,40,.28), inset -2px 0 3px rgba(255,240,230,.3);
+  display: grid; place-items: center;
+  padding: 0 30px 0 44px;
+  visibility: visible;
+  transition: transform 1.25s cubic-bezier(.6,.05,.2,1), opacity .6s ease .45s, visibility 0s 1.25s;
+  cursor: pointer;
+  user-select: none;
+}
+.is-open .cover { transform: rotateY(-155deg); opacity: 0; visibility: hidden; pointer-events: none; }
+.closing .cover { transition: transform 1.25s cubic-bezier(.6,.05,.2,1), opacity .5s ease, visibility 0s; }
+.cover::before { /* linen weave */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 1; mix-blend-mode: multiply;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(110,70,55,.07) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.12) 0 1px, transparent 1px 4px);
+}
+.cover::after { /* spine */
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 30px; border-radius: 4px 0 0 4px; pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0 22px, rgba(138,109,59,.7) 22px 23px, transparent 23px 26px, rgba(138,109,59,.45) 26px 27px, transparent 27px),
+    linear-gradient(90deg, rgba(70,40,30,.28), rgba(70,40,30,.04) 70%, rgba(255,240,230,.12));
+}
+.frame {
+  position: absolute; inset: 22px 20px 22px 40px; pointer-events: none;
+  border: 1px solid rgba(120,92,50,.7); border-radius: 2px;
+}
+.frame::before { content: ""; position: absolute; inset: 5px; border: 1px solid rgba(120,92,50,.35); }
+.frame i { position: absolute; width: 14px; height: 14px; border: 1px solid var(--gold-dark); }
+.frame i:nth-child(1) { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.frame i:nth-child(2) { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
+.frame i:nth-child(3) { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
+.frame i:nth-child(4) { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+.cover-body { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0; width: 100%; }
+.foil { /* cover lettering: deep brand green on blush linen */
+  color: var(--green); -webkit-text-fill-color: var(--green);
+  text-shadow: 0 1px 0 rgba(255,255,255,.3);
+}
+.cover .ornament { width: 74px; height: 20px; margin-bottom: 28px; }
+.cover .ornament path, .cover .ornament circle { stroke: var(--gold-dark); fill: none; stroke-width: 1; }
+.cover .ornament .f { fill: var(--gold-dark); stroke: none; }
+.cover h1 { margin: 0; font-family: var(--display); font-weight: 500; text-wrap: balance; }
+.cover h1 .small { display: block; font-style: italic; font-weight: 400; font-size: clamp(1.15rem, 5vw, 1.5rem); letter-spacing: .12em; margin-bottom: 4px; }
+.cover h1 .big { display: block; font-size: clamp(2.5rem, 11.5vw, 3.7rem); line-height: 1; letter-spacing: .04em; text-transform: uppercase; }
+/* Gold shimmer: a band of gold glides across the green lettering, pauses, then repeats */
+.cover h1 .big.foil {
+  background: linear-gradient(105deg, #2D401B 0%, #2D401B 37%, #5c5a2b 43%, #a8873f 48.5%, #cfae63 50.5%, #a8873f 52.5%, #5c5a2b 58%, #2D401B 64%, #2D401B 100%);
+  background-size: 300% 100%; background-position: 100% 0;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent; text-shadow: none;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,.3));
+  animation: shimmer 7s ease-in-out 1.2s infinite;
+}
+@keyframes shimmer { 0%, 45% { background-position: 100% 0; } 85%, 100% { background-position: 0% 0; } }
+.cover .hair { width: 120px; height: 1px; margin: 26px 0 22px; background: linear-gradient(90deg, transparent, var(--gold-dark), transparent); }
+.cover .byline { font-family: var(--display); font-size: 1rem; letter-spacing: .14em; margin: 0; }
+.cover .byline a { text-decoration: none; display: inline-block; padding: 4px 2px; }
+.cover .byline a:hover .foil { text-decoration: underline; text-decoration-color: var(--gold-dark); text-underline-offset: 4px; }
+.open-hint {
+  position: absolute; z-index: 1; left: 0; right: 0; bottom: 46px; text-align: center;
+  font-family: var(--display); font-weight: 600; font-size: .72rem; letter-spacing: .34em; text-transform: uppercase; color: var(--green);
+  opacity: .85; padding-left: 14px;
+}
+.open-hint button { padding: 10px 6px; letter-spacing: inherit; text-transform: inherit; }
+.open-hint button:hover { color: #1c2a10; }
+
+@media (max-width: 380px) {
+  .page-inner { padding: 40px 26px 80px 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cover, .page, .page.active, .articles a { transition: none !important; }
+  .cover h1 .big.foil { animation: none; background-position: 100% 0; }
+}
+</style>
+<style>:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }</style>
+</head>
+<body>
+<main class="book" id="book" aria-label="The Little Book of Knowledge">
+
+  <!-- Inside pages are built from the BOOK data below -->
+  <section class="pages" id="pages"></section>
+  <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+
+  <!-- Cover -->
+  <div class="cover" id="cover">
+    <div class="frame"><i></i><i></i><i></i><i></i></div>
+    <div class="cover-body">
+      <svg class="ornament" viewBox="0 0 74 20" aria-hidden="true">
+        <path d="M2 10h26M46 10h26"/>
+        <path class="f" d="M37 3l5 7-5 7-5-7z"/>
+        <circle cx="31" cy="10" r="1.2" class="f"/><circle cx="43" cy="10" r="1.2" class="f"/>
+      </svg>
+      <h1>
+        <span class="small foil">The Little Book of</span>
+        <span class="big foil">Knowledge</span>
+      </h1>
+      <div class="hair"></div>
+      <p class="byline"><a class="foil-link" href="https://www.kokoncoaching.co.nz" target="_blank" rel="noopener"><span class="foil">&copy; Kokon Coaching</span></a></p>
+    </div>
+    <div class="open-hint"><button type="button" id="openBtn">Open the book</button></div>
+  </div>
+</main>
+
+<script>
+/* ======================================================
+   EDIT HERE: intro text, section text and article links.
+   Replace each url "#" with the real blog post address.
+   ====================================================== */
+const BOOK = {
+  intro: {
+    heading: "Welcome",
+    text: "Sometimes when everything feels heavy and muddled in your head, all you need is something solid to lean on. This little book of knowledge is here to be that pillar for you. It includes some factual knowledge and helpful perspectives around food, body image and difficult conversations. These are all here to give you the power to move through the scary bits in life with a light heart and steady feet.",
+    love: "So much love",
+    name: "Marisa x"
+  },
+  sections: [
+    {
+      numeral: "I", title: "Food",
+      paragraphs: [
+        "So much of Christmas revolves around food. The work functions leading up to it, the big Christmas food shop, the actual Christmas lunch, the big dinner and then cookies with Aunty Betty afterwards!",
+        "When body image is something you struggle with, all that excitement and enjoyment around food can have almost the opposite effect. Instead of simply looking forward to it, food can start to feel scary. You might feel you need to be extra diligent about managing what you eat, while fears around weight gain, losing control or what other people might think of you indulging can quietly take over. Before you know it, those worries are overshadowing the things you were looking forward to."
+      ],
+      lead: "Here are two articles to help you understand what's actually going on, give you some factual knowledge to lean on when food-related fears creep in, and explore food noise and why that constant chatter in your head can take up so much space.",
+      articles: [
+        { title: "Set Point Theory", desc: "How your body regulates weight, and what that means for fears around weight gain, eating more and losing control.", url: "https://www.kokoncoaching.co.nz/blog/what-is-set-point-theory-why-diets-dont-work-long-term" },
+        { title: "Food Noise", desc: "Why thoughts about food can become so consuming, and what might be contributing to them.", url: "https://www.kokoncoaching.co.nz/blog/food-noise-when-thoughts-about-food-take-up-too-much-space" }
+      ]
+    },
+    {
+      numeral: "II", title: "My Body",
+      paragraphs: [
+        "While body image is most likely something that is prevalent in your life all year round, the Christmas and New Year season can be particularly triggering.",
+        "There is so much talk about having to turn yourself around for the “New Year, New You”, while simultaneously being bombarded with messaging around indulging over the Christmas festivities.",
+        "But I know you're here for a reason. The reason being that you're ready to exit that never-ending carousel of shoulds around your body, your appearance and your worth.",
+        "And while I know it might seem hard and scary, believe me when I say it will all be worth it."
+      ],
+      lead: "The following articles explore different aspects of body image, challenge some of the beliefs we hold about our bodies and offer new perspectives on building a more peaceful relationship with yourself.",
+      articles: [
+        { title: "The BMI Myth", url: "https://www.kokoncoaching.co.nz/blog/the-bmi-myth-how-it-shapes-body-image-and-self-perception" },
+        { title: "More Than Appearance", url: "https://www.kokoncoaching.co.nz/blog/why-body-image-affects-so-much-more-than-your-appearance" },
+        { title: "The Body Peace Method", url: "https://www.kokoncoaching.co.nz/blog/body-image-healing-through-the-body-peace-method" },
+        { title: "An Inside-Out Journey", url: "https://www.kokoncoaching.co.nz/blog/an-inside-out-journey-to-body-peace" }
+      ]
+    },
+    {
+      numeral: "III", title: "Difficult Conversations",
+      paragraphs: [
+        "Difficult conversations are part of the Christmas experience, aren't they? The awkward family dynamics and outdated viewpoints that simply don't want to budge.",
+        "But here's the thing. While you might be part of it all, you have the power to step off that treadmill of playing along.",
+        "Read that again, my love. You need to hear it!",
+        "Because as soon as you stop playing along, you also start to value yourself differently. And that can have a ripple effect in this world."
+      ],
+      lead: "Here are two articles you can explore around no longer automatically playing along, questioning the expectations and beliefs you've absorbed, and finding your own way between the desire to belong and staying true to yourself.",
+      articles: [
+        { title: "Whose Idea Was It Anyway?", desc: "Question where your expectations come from before you accept them.", url: "https://www.kokoncoaching.co.nz/blog/whos-idea-was-it-anyway" },
+        { title: "Wellness and Body Anxiety", desc: "How wellness trends can blur the line between health and appearance.", url: "https://www.kokoncoaching.co.nz/blog/how-the-wellness-industry-unintentionally-reinforces-body-anxiety" }
+      ]
+    }
+  ],
+  homepage: "https://www.kokoncoaching.co.nz",
+  copyright: "2026",
+  copyrightNote: "All rights reserved. No part of this book may be reproduced without permission.",
+  disclaimer: "This book is for education and support and isn’t a substitute for medical or mental health care.",
+  // Tracking: these tags are added to every blog link so visits from the book show up in your analytics.
+  tracking: { utm_source: "little-book", utm_medium: "embedded-book", utm_campaign: "little-book-of-knowledge" }
+};
+
+// Adds the tracking tags (plus the article name) to a blog link. Placeholder "#" links are left alone.
+function trackUrl(url, title) {
+  if (!url || url === '#') return url;
+  try {
+    const u = new URL(url);
+    Object.entries(BOOK.tracking).forEach(([k, v]) => u.searchParams.set(k, v));
+    u.searchParams.set('utm_content', String(title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+    return u.toString();
+  } catch (e) { return url; }
+}
+
+/* ---------- Build pages ---------- */
+const diamond = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 0l5 5-5 5-5-5z"/></svg>';
+const rule = '<div class="rule">' + diamond + '</div>';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const arrowR = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2l6 6-6 6"/></svg>';
+const arrowL = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2L5 8l6 6"/></svg>';
+
+const pageHtml = [];
+
+pageHtml.push(`
+  <div class="page-inner">
+    <p class="eyebrow">Introduction</p>
+    <h2>${esc(BOOK.intro.heading)}</h2>
+    ${rule}
+    <p class="lede intro-text">${esc(BOOK.intro.text)}</p>
+    <div class="signoff">
+      <span class="love">${esc(BOOK.intro.love)}</span>
+      <span class="name">${esc(BOOK.intro.name)}</span>
+    </div>
+  </div>`);
+
+pageHtml.push(`
+  <div class="page-inner">
+    <p class="eyebrow">Contents</p>
+    <h2>Where to begin</h2>
+    ${rule}
+    <ul class="contents" aria-label="Chapters">
+      ${BOOK.sections.map((s, i) => `<li><button type="button" data-go="${2 + 2 * i}"><span class="n">${s.numeral}</span><span class="t">${esc(s.title)}</span></button></li>`).join('')}
+    </ul>
+  </div>`);
+
+BOOK.sections.forEach(s => {
+  // Page A: chapter introduction
+  pageHtml.push(`
+  <div class="page-inner">
+    <p class="eyebrow">Section ${s.numeral}</p>
+    <h2>${esc(s.title)}</h2>
+    ${rule}
+    <div class="prose ${s.placeholder ? 'placeholder' : 'drop'}">
+      ${s.paragraphs.map(p => `<p>${esc(p)}</p>`).join('')}
+    </div>
+  </div>`);
+  // Page B: further reading
+  pageHtml.push(`
+  <div class="page-inner">
+    <p class="eyebrow">${esc(s.title)}</p>
+    <h2>Further reading</h2>
+    ${rule}
+    <div class="prose ${s.placeholder ? 'placeholder' : ''}"><p>${esc(s.lead)}</p></div>
+    <ul class="articles">
+      ${s.articles.map(a => `<li><a href="${esc(trackUrl(a.url, a.title))}" target="_blank" rel="noopener" data-placeholder="${a.url === '#'}"><span class="txt"><span class="t">${esc(a.title)}</span>${a.desc ? `<span class="d">${esc(a.desc)}</span>` : ''}</span><span class="go">Read</span></a></li>`).join('')}
+    </ul>
+  </div>`);
+});
+
+pageHtml.push(`
+  <div class="page-inner">
+    <div class="copy">
+      <div class="rule">${diamond}</div>
+      <p class="mark"><a href="${esc(BOOK.homepage)}" target="_blank" rel="noopener">&copy; ${esc(BOOK.copyright)} Kokon Coaching</a></p>
+      <p>${esc(BOOK.copyrightNote)}</p>
+      <p class="disclaimer">${esc(BOOK.disclaimer)}</p>
+      <button type="button" class="closebook" id="closeBtn">Close the book</button>
+    </div>
+  </div>`);
+
+const pagesEl = document.getElementById('pages');
+const labels = ['Introduction', 'Contents', ...BOOK.sections.flatMap(s => [s.title, s.title + ', further reading']), 'Copyright'];
+pagesEl.innerHTML =
+  pageHtml.map((h, i) => `<article class="page" data-i="${i}" aria-label="${esc(labels[i])}">${h}</article>`).join('') +
+  `<nav class="nav" aria-label="Page navigation">
+     <button type="button" class="arrow" id="prev" aria-label="Previous page">${arrowL}</button>
+     <div class="dots" id="dots">${labels.map((l, i) => `<button type="button" data-go="${i}" aria-label="${esc(l)}"></button>`).join('')}</div>
+     <button type="button" class="arrow" id="next" aria-label="Next page">${arrowR}</button>
+   </nav>`;
+
+/* ---------- Behaviour ---------- */
+const book = document.getElementById('book');
+const pages = [...pagesEl.querySelectorAll('.page')];
+const dots = [...document.querySelectorAll('#dots button')];
+const prev = document.getElementById('prev');
+const next = document.getElementById('next');
+let current = 0;
+const statusEl = document.getElementById('status');
+
+function show(i) {
+  current = Math.max(0, Math.min(pages.length - 1, i));
+  pages.forEach((p, k) => {
+    p.classList.toggle('active', k === current);
+    p.toggleAttribute('inert', k !== current);
+  });
+  dots.forEach((d, k) => d.setAttribute('aria-current', k === current ? 'true' : 'false'));
+  next.disabled = current === pages.length - 1;
+  const inner = pages[current].querySelector('.page-inner');
+  if (inner) inner.scrollTop = 0;
+  if (book.classList.contains('is-open')) {
+    statusEl.textContent = 'Page ' + (current + 1) + ' of ' + pages.length + ': ' + labels[current];
+  }
+}
+function openBook() { finishTurn(); book.classList.remove('closing'); book.classList.add('is-open'); show(0); }
+function closeBook() { finishTurn(); book.classList.add('closing'); book.classList.remove('is-open'); }
+
+/* ---------- Page turn ---------- */
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const canAnimate = () => !reduceMotion.matches && typeof Element.prototype.animate === 'function';
+const MAX_ANGLE = 104;                       // degrees the leaf swings before it leaves the page
+const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+let turning = null;
+
+function finishTurn() { if (turning) turning.finish(); }
+
+// A turning leaf is a static copy of a page, hinged at the spine.
+function makeLeaf(sourcePage, scrollTop) {
+  const leaf = document.createElement('div');
+  leaf.className = 'leaf';
+  leaf.setAttribute('aria-hidden', 'true');
+  leaf.inert = true;
+  const inner = sourcePage.querySelector('.page-inner').cloneNode(true);
+  inner.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  leaf.appendChild(inner);
+  const curl = document.createElement('div');
+  curl.className = 'curl';
+  leaf.appendChild(curl);
+  return { leaf, inner, curl, scrollTop };
+}
+
+function goTo(target) {
+  target = Math.max(0, Math.min(pages.length - 1, target));
+  finishTurn();
+  if (target === current) return;
+  if (!canAnimate() || !book.classList.contains('is-open')) { show(target); return; }
+
+  const forward = target > current;
+  const srcPage = forward ? pages[current] : pages[target];
+  const srcScroll = forward ? srcPage.querySelector('.page-inner').scrollTop : 0;
+  const { leaf, inner, curl } = makeLeaf(srcPage);
+  const shadow = document.createElement('div');
+  shadow.className = 'turn-shadow';
+  shadow.setAttribute('aria-hidden', 'true');
+
+  pagesEl.classList.add('turning');
+  if (!forward) leaf.style.transform = 'rotateY(-' + MAX_ANGLE + 'deg)';
+  pagesEl.append(shadow, leaf);
+  inner.scrollTop = srcScroll;
+  if (forward) show(target);                 // the new page is revealed beneath the leaf
+
+  const W = pagesEl.clientWidth;
+  const N = 36, leafKf = [], curlKf = [], shadowKf = [];
+  for (let k = 0; k <= N; k++) {
+    const t = k / N, e = ease(t);
+    const p = forward ? e : 1 - e;           // 0 = flat on the page, 1 = turned away
+    const a = -MAX_ANGLE * p;
+    const lift = Math.sin(Math.PI * p);      // strongest mid-turn
+    leafKf.push({ offset: t, transform: 'rotateY(' + a.toFixed(2) + 'deg) skewY(' + (lift * 0.7).toFixed(2) + 'deg)' });
+    curlKf.push({ offset: t, opacity: Math.min(1, lift * 1.15).toFixed(3) });
+    shadowKf.push({
+      offset: t,
+      transform: 'translateX(' + (W * Math.cos(a * Math.PI / 180)).toFixed(1) + 'px)',
+      opacity: (lift * 0.9).toFixed(3)
+    });
+  }
+  const timing = { duration: forward ? 900 : 820, easing: 'linear', fill: 'forwards' };
+  const anims = [leaf.animate(leafKf, timing), curl.animate(curlKf, timing), shadow.animate(shadowKf, timing)];
+
+  let done = false;
+  const cleanup = () => {
+    if (done) return;
+    done = true;
+    anims.forEach(a => a.cancel());
+    if (!forward) show(target);
+    pagesEl.classList.remove('turning');
+    leaf.remove();
+    shadow.remove();
+    turning = null;
+  };
+  turning = { finish: cleanup };
+  anims[0].onfinish = cleanup;
+}
+const forwardOne = () => { finishTurn(); goTo(current + 1); };
+const backOne = () => { finishTurn(); current === 0 ? closeBook() : goTo(current - 1); };
+
+document.getElementById('cover').addEventListener('click', e => {
+  if (e.target.closest('a')) return;
+  openBook();
+});
+document.getElementById('openBtn').addEventListener('click', e => { e.stopPropagation(); openBook(); });
+document.getElementById('closeBtn').addEventListener('click', closeBook);
+prev.addEventListener('click', backOne);
+next.addEventListener('click', forwardOne);
+pagesEl.addEventListener('click', e => {
+  const go = e.target.closest('[data-go]');
+  if (go) { goTo(Number(go.dataset.go)); return; }
+  const a = e.target.closest('a[data-placeholder="true"]');
+  if (a) e.preventDefault(); // placeholder links do nothing until real URLs are added
+});
+
+/* Tap the page: left side goes back, right side goes forward.
+   Links, buttons and text selection never trigger a turn. */
+let lastPointerType = 'mouse', tapTimer = 0;
+const hasSelection = () => {
+  const s = window.getSelection();
+  return !!s && !s.isCollapsed && s.toString().trim() !== '';
+};
+pagesEl.addEventListener('pointerdown', e => { lastPointerType = e.pointerType || 'mouse'; });
+pagesEl.addEventListener('click', e => {
+  if (e.target.closest('a, button, input, textarea, select, label, summary, [role="button"]')) return;
+  if (e.detail > 1) { clearTimeout(tapTimer); return; }       // double or triple click selects text
+  if (hasSelection()) return;
+  const rect = pagesEl.getBoundingClientRect();
+  const goBack = (e.clientX - rect.left) < rect.width * 0.4;
+  const turn = () => { if (hasSelection()) return; goBack ? (current > 0 && backOne()) : forwardOne(); };
+  clearTimeout(tapTimer);
+  // A mouse click waits a moment so a double-click can select a word instead; touch turns instantly.
+  if (lastPointerType === 'mouse') tapTimer = setTimeout(turn, 220); else turn();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  if (!book.classList.contains('is-open')) {
+    if (e.key === 'Enter' && document.activeElement === document.body) openBook();
+    return;
+  }
+  if (e.key === 'ArrowRight') forwardOne();
+  if (e.key === 'ArrowLeft') backOne();
+});
+show(0);
+</script>
+</body>
+</html>
